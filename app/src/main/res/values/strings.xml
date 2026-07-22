@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">MusicFavic</string>
+    <string name="search_hint">Buscar canciones...</string>
+    <string name="no_mp3_found">No se encontraron archivos MP3</string>
+    <string name="folder_label_format">Carpeta: %s</string>
+    <string name="default_song_title">Selecciona una canción</string>
+    <string name="time_zero">00:00</string>
+    <string name="desc_prev">Canción anterior</string>
+    <string name="desc_play_pause">Reproducir o pausar</string>
+    <string name="desc_next">Siguiente canción</string>
+    <string name="desc_shuffle">Modo aleatorio</string>
+    <string name="desc_repeat">Modo repetir</string>
+    <string name="desc_scroll_folders">Lista horizontal de carpetas de música</string>
+    <string name="desc_song_list">Lista vertical de canciones</string>
+</resources>

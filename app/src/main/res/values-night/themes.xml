@@ -1,0 +1,21 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.MusicFaviC" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Colores principales y de acento -->
+        <item name="colorPrimary">#1A2238</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#FFD700</item>
+        <item name="colorOnSecondary">#121212</item>
+
+        <!-- Superficies y contenedores oscuros elegantes -->
+        <item name="android:windowBackground">#121212</item>
+        <item name="colorSurface">#1A2238</item>
+        <item name="colorOnSurface">#FFFFFF</item>
+
+        <!-- Barras del sistema sincronizadas -->
+        <item name="android:statusBarColor">#121212</item>
+        <item name="android:navigationBarColor">#121212</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="O_MR1">false</item>
+    </style>
+</resources>
