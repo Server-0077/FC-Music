@@ -12,4 +12,31 @@
     <string name="desc_repeat">Modo repetir</string>
     <string name="desc_scroll_folders">Lista horizontal de carpetas de música</string>
     <string name="desc_song_list">Lista vertical de canciones</string>
+    <string name="album_cover_desc">Carátula del álbum</string>
+    <string name="songs_count_format">%d canciones</string>
+    <!-- Tus strings anteriores y además: -->
+    <string name="settings_title">Ajustes y Preferencias</string>
+    <string name="settings_theme_section">Tema y Apariencia</string>
+    <string name="settings_select_color">Selecciona el color de acento</string>
+    <string name="settings_support_section">Soporte y Reportes</string>
+    <string name="settings_bug_title">¿Encontraste un fallo? Infórmanos</string>
+    <string name="settings_bug_subtitle">Selecciona el tipo de problema:</string>
+    <string name="bug_opt_1">La música no se reproduce o da error</string>
+    <string name="bug_opt_2">La tarjeta de canción activa no se marca</string>
+    <string name="bug_opt_3">Problema al cargar carpetas o álbumes</string>
+    <string name="bug_opt_4">Otro error inesperado de la aplicación</string>
+    <string name="bug_hint_details">Detalles adicionales (opcional)...</string>
+    <string name="btn_send_report">Enviar Reporte por Correo</string>
+    <string name="settings_info_section">Información</string>
+    <string name="app_name_title">MusicFavic</string>
+    <string name="app_version">Versión 1.0.0 (Estable)</string>
+    <string name="creator_label">Creador y Desarrollador</string>
+    <string name="creator_name">Emerson Fabricio Arévalo González</string>
+
+    <!-- Descripciones de accesibilidad para imágenes -->
+    <string name="desc_theme_native">Tema nativo violeta</string>
+    <string name="desc_theme_blue">Tema azul neón</string>
+    <string name="desc_theme_green">Tema esmeralda</string>
+    <string name="desc_theme_orange">Tema coral</string>
+    <string name="desc_theme_pink">Tema rosa fucsia</string>
 </resources>

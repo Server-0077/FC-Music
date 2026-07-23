@@ -6,16 +6,16 @@
     android:fitsSystemWindows="true"
     android:background="#0A0A0F">
 
-    <!-- Saludo con tipografía limpia y moderna -->
+    <!-- Título de la cabecera del álbum -->
     <TextView
-        android:id="@+id/tvAppTitle"
+        android:id="@+id/tvAlbumTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingHorizontal="24dp"
         android:paddingTop="24dp"
-        android:paddingBottom="8dp"
-        android:text="Hola Fabricio 👋"
-        android:textSize="26sp"
+        android:paddingBottom="16dp"
+        android:text="Detalle del Álbum"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:letterSpacing="-0.02"
         android:textColor="#FFFFFF"
@@ -23,95 +23,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Barra de Búsqueda con MaterialCardView para esquinas perfectamente redondeadas -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/searchCard"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="12dp"
-        app:cardBackgroundColor="#161622"
-        app:cardCornerRadius="25dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
-        app:layout_constraintTop_toBottomOf="@id/tvAppTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <EditText
-            android:id="@+id/etSearch"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/transparent"
-            android:hint="@string/search_hint"
-            android:inputType="text"
-            android:maxLines="1"
-            android:paddingHorizontal="20dp"
-            android:textSize="14sp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#707085"
-            android:autofillHints="name" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Carrusel de Carpetas (Chips) -->
-    <HorizontalScrollView
-        android:id="@+id/scrollFolders"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:scrollbars="none"
-        android:paddingHorizontal="20dp"
-        android:paddingBottom="8dp"
-        android:contentDescription="@string/desc_scroll_folders"
-        app:layout_constraintTop_toBottomOf="@id/searchCard"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:id="@+id/containerFolders"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" />
-
-    </HorizontalScrollView>
-
-    <!-- Lista de Música -->
-    <FrameLayout
+    <!-- Contenedor dinámico para las canciones del álbum con ScrollView -->
+    <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/scrollFolders"
+        android:paddingHorizontal="16dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/tvAlbumTitle"
         app:layout_constraintBottom_toTopOf="@id/layoutPlayerBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ScrollView
+        <LinearLayout
+            android:id="@+id/containerAlbumSongs"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="16dp"
-            android:contentDescription="@string/desc_song_list">
-
-            <LinearLayout
-                android:id="@+id/containerMediaList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-        </ScrollView>
-
-        <TextView
-            android:id="@+id/tvEmpty"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/no_mp3_found"
-            android:visibility="gone"
-            android:textSize="15sp"
-            android:textColor="#707085" />
+            android:orientation="vertical" />
+    </ScrollView>
 
-    </FrameLayout>
-
-    <!-- Reproductor Inferior Flotante con Diseño Moderno (Esquinas redondeadas elevadas) -->
+    <!-- Reproductor Inferior Flotante Sincronizado -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/layoutPlayerBar"
         android:layout_width="0dp"
@@ -122,7 +52,7 @@
         app:cardCornerRadius="20dp"
         app:cardElevation="8dp"
         app:strokeWidth="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationAlbum"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -187,11 +117,8 @@
                 <ImageButton
                     android:id="@+id/btnShuffle"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:padding="4dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_menu_agenda"
                     app:tint="#707085"
@@ -200,11 +127,8 @@
                 <ImageButton
                     android:id="@+id/btnPrev"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:padding="4dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_media_previous"
                     app:tint="#FFFFFF"
@@ -213,11 +137,8 @@
                 <ImageButton
                     android:id="@+id/btnPlayPause"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
+                    android:layout_height="44dp"
                     android:layout_weight="1"
-                    android:padding="2dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_media_play"
                     app:tint="#A855F7"
@@ -226,11 +147,8 @@
                 <ImageButton
                     android:id="@+id/btnNext"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:padding="4dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_media_next"
                     app:tint="#FFFFFF"
@@ -239,11 +157,8 @@
                 <ImageButton
                     android:id="@+id/btnRepeat"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:padding="4dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_menu_rotate"
                     app:tint="#707085"
@@ -255,7 +170,7 @@
 
     <!-- Barra de Navegación Inferior Unificada -->
     <LinearLayout
-        android:id="@+id/bottomNavigation"
+        android:id="@+id/bottomNavigationAlbum"
         android:layout_width="0dp"
         android:layout_height="60dp"
         android:background="#0D0D14"
@@ -273,21 +188,19 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="Inicio"
-            android:textColor="#A855F7"
+            android:textColor="#707085"
             android:textSize="12sp"
-            android:textStyle="bold" />
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
-            android:id="@+id/navSearch"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:text="Buscar"
             android:textColor="#707085"
-            android:textSize="12sp"
-            android:clickable="true"
-            android:focusable="true" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/navLibrary"
@@ -302,16 +215,13 @@
             android:focusable="true" />
 
         <TextView
-            android:id="@+id/navSettings"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:text="Ajustes"
             android:textColor="#707085"
-            android:textSize="12sp"
-            android:clickable="true"
-            android:focusable="true" />
+            android:textSize="12sp" />
 
     </LinearLayout>
 
