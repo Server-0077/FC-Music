@@ -43,6 +43,10 @@
         <activity
             android:name=".BuscarActivity"
             android:exported="false" />
+        <activity
+            android:name=".PlayerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

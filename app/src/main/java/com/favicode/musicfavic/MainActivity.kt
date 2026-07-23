@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -11,13 +13,12 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Gravity
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.SeekBar
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,16 +51,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvEmpty: TextView
     private lateinit var etSearch: EditText
 
-    // Componentes del Reproductor Inferior
+    // Componentes del Reproductor Inferior (Mini Player estilo Spotify actual)
+    private lateinit var layoutPlayerBar: MaterialCardView
     private lateinit var btnPlayPause: ImageButton
-    private lateinit var btnPrev: ImageButton
-    private lateinit var btnNext: ImageButton
-    private lateinit var btnShuffle: ImageButton
-    private lateinit var btnRepeat: ImageButton
     private lateinit var tvCurrentSong: TextView
-    private lateinit var tvCurrentTime: TextView
-    private lateinit var tvTotalTime: TextView
-    private lateinit var seekBar: SeekBar
+    private lateinit var tvMiniArtist: TextView
+    private lateinit var miniSeekBar: ProgressBar
+    private lateinit var imgMiniAlbumArt: ImageView
 
     private val allMusicList = mutableListOf<MediaModel>()
     private var filteredMusicList = mutableListOf<MediaModel>()
@@ -93,21 +91,25 @@ class MainActivity : AppCompatActivity() {
         tvEmpty = findViewById(R.id.tvEmpty)
         etSearch = findViewById(R.id.etSearch)
 
+        // Referencia a la barra reproductor inferior (Mini Player) y sus componentes reales del XML
+        layoutPlayerBar = findViewById(R.id.layoutPlayerBar)
         btnPlayPause = findViewById(R.id.btnPlayPause)
-        btnPrev = findViewById(R.id.btnPrev)
-        btnNext = findViewById(R.id.btnNext)
-        btnShuffle = findViewById(R.id.btnShuffle)
-        btnRepeat = findViewById(R.id.btnRepeat)
         tvCurrentSong = findViewById(R.id.tvCurrentSong)
-        tvCurrentTime = findViewById(R.id.tvCurrentTime)
-        tvTotalTime = findViewById(R.id.tvTotalTime)
-        seekBar = findViewById(R.id.seekBar)
+        tvMiniArtist = findViewById(R.id.tvMiniArtist)
+        miniSeekBar = findViewById(R.id.miniSeekBar)
+        imgMiniAlbumArt = findViewById(R.id.imgMiniAlbumArt)
 
-        setupBottomNavigation("Home") // Vinculación unificada de la barra inferior
+        // Configuración para abrir PlayerActivity al hacer clic en la barra inferior
+        layoutPlayerBar.setOnClickListener {
+            val intent = Intent(this, PlayerActivity::class.java)
+            startActivity(intent)
+        }
+
+        setupBottomNavigation()
         setupPlayerControls()
         setupSearch()
         checkPermissionAndLoad()
-        setupGlobalListeners() // Vinculamos los eventos globales del reproductor
+        setupGlobalListeners()
     }
 
     // ==========================================
@@ -122,46 +124,32 @@ class MainActivity : AppCompatActivity() {
     // ==========================================
     // NAVEGACIÓN INFERIOR UNIFICADA
     // ==========================================
-    private fun setupBottomNavigation(currentActivity: String) {
+    private fun setupBottomNavigation() {
         val navHome = findViewById<TextView>(R.id.navHome)
         val navSearch = findViewById<TextView>(R.id.navSearch)
         val navLibrary = findViewById<TextView>(R.id.navLibrary)
         val navSettings = findViewById<TextView>(R.id.navSettings)
 
         navHome?.setOnClickListener {
-            if (currentActivity != "Home") {
-                val intent = Intent(this, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                startActivity(intent)
-                overridePendingTransition(0, 0)
-            }
+            // Ya estamos en Home, no es necesario recargar
         }
 
         navSearch?.setOnClickListener {
-            if (currentActivity != "Search") {
-                val intent = Intent(this, BuscarActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                startActivity(intent)
-                overridePendingTransition(0, 0)
-            }
+            val intent = Intent(this, BuscarActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivity(intent)
         }
 
         navLibrary?.setOnClickListener {
-            if (currentActivity != "Library") {
-                val intent = Intent(this, LibraryActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                startActivity(intent)
-                overridePendingTransition(0, 0)
-            }
+            val intent = Intent(this, LibraryActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivity(intent)
         }
 
         navSettings?.setOnClickListener {
-            if (currentActivity != "Settings") {
-                val intent = Intent(this, SettingsActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                startActivity(intent)
-                overridePendingTransition(0, 0)
-            }
+            val intent = Intent(this, SettingsActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivity(intent)
         }
     }
 
@@ -171,10 +159,11 @@ class MainActivity : AppCompatActivity() {
     private fun setupGlobalListeners() {
         MusicPlayerManager.onSongChangeListener = { media, _ ->
             tvCurrentSong.text = media.title
-            tvTotalTime.text = formatTime(media.duration)
-            MusicPlayerManager.mediaPlayer?.let { seekBar.max = it.duration }
+            tvMiniArtist.text = media.bucketName
+            MusicPlayerManager.mediaPlayer?.let { miniSeekBar.max = it.duration }
             btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
-            highlightCurrentPlayingSong() // Refresca el resaltado al cambiar de canción
+            loadMiniAlbumArt(media)
+            highlightCurrentPlayingSong()
         }
 
         MusicPlayerManager.onPlayStateChangedListener = { isPlaying ->
@@ -186,6 +175,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadMiniAlbumArt(media: MediaModel) {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(this, media.uri)
+            val artBytes = retriever.embeddedPicture
+            if (artBytes != null) {
+                val bitmap = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size)
+                imgMiniAlbumArt.setImageBitmap(bitmap)
+            } else {
+                imgMiniAlbumArt.setImageResource(R.drawable.default_song_cover)
+            }
+        } catch (_: Exception) {
+            imgMiniAlbumArt.setImageResource(R.drawable.default_song_cover)
+        } finally {
+            retriever.release()
+        }
+    }
+
     // ==========================================
     // RESALTADO VISUAL DE LA TARJETA ACTIVA
     // ==========================================
@@ -194,13 +201,12 @@ class MainActivity : AppCompatActivity() {
 
         for ((idx, card) in mainCardViewsList.withIndex()) {
             val mediaInCard = filteredMusicList.getOrNull(idx)
-            // Se marca si el ID de la canción coincide con la que está sonando globalmente
             if (mediaInCard != null && currentPlayingMedia != null && mediaInCard.id == currentPlayingMedia.id) {
-                card.setCardBackgroundColor(0xFF3B1E54.toInt()) // Violeta activo
+                card.setCardBackgroundColor(0xFF3B1E54.toInt())
                 card.strokeColor = 0xFFA855F7.toInt()
                 card.strokeWidth = 3
             } else {
-                card.setCardBackgroundColor(0xFF1A2238.toInt()) // Fondo normal
+                card.setCardBackgroundColor(0xFF1A2238.toInt())
                 card.strokeWidth = 0
             }
         }
@@ -208,14 +214,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun updatePlayerUIState() {
         MusicPlayerManager.mediaPlayer?.let { player ->
-            tvCurrentSong.text = MusicPlayerManager.currentSongList.getOrNull(MusicPlayerManager.currentPlayingIndex)?.title ?: "Selecciona una canción"
-            tvTotalTime.text = formatTime(player.duration.toLong())
-            seekBar.max = player.duration
+            val currentMedia = MusicPlayerManager.currentSongList.getOrNull(MusicPlayerManager.currentPlayingIndex)
+            tvCurrentSong.text = currentMedia?.title ?: getString(R.string.default_song_title)
+            tvMiniArtist.text = currentMedia?.bucketName ?: getString(R.string.default_artist_name)
+            miniSeekBar.max = player.duration
             if (player.isPlaying) {
                 btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
             } else {
                 btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
             }
+            currentMedia?.let { loadMiniAlbumArt(it) }
         }
     }
 
@@ -227,42 +235,11 @@ class MainActivity : AppCompatActivity() {
             MusicPlayerManager.togglePlayPause()
         }
 
-        btnNext.setOnClickListener {
-            MusicPlayerManager.playNext(this)
-        }
-
-        btnPrev.setOnClickListener {
-            MusicPlayerManager.playPrev(this)
-        }
-
-        btnShuffle.setOnClickListener {
-            MusicPlayerManager.isShuffleEnabled = !MusicPlayerManager.isShuffleEnabled
-            btnShuffle.setColorFilter(if (MusicPlayerManager.isShuffleEnabled) 0xFFFFD700.toInt() else 0xFF808080.toInt())
-        }
-
-        btnRepeat.setOnClickListener {
-            MusicPlayerManager.isRepeatEnabled = !MusicPlayerManager.isRepeatEnabled
-            MusicPlayerManager.mediaPlayer?.isLooping = MusicPlayerManager.isRepeatEnabled
-            btnRepeat.setColorFilter(if (MusicPlayerManager.isRepeatEnabled) 0xFFFFD700.toInt() else 0xFF808080.toInt())
-        }
-
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    MusicPlayerManager.mediaPlayer?.seekTo(progress)
-                    tvCurrentTime.text = formatTime(progress.toLong())
-                }
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-
         updateSeekBarRunnable = object : Runnable {
             override fun run() {
                 MusicPlayerManager.mediaPlayer?.let { player ->
                     if (player.isPlaying) {
-                        seekBar.progress = player.currentPosition
-                        tvCurrentTime.text = formatTime(player.currentPosition.toLong())
+                        miniSeekBar.progress = player.currentPosition
                     }
                 }
                 handler.postDelayed(this, 1000)
@@ -396,7 +373,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ==========================================
-    // RENDERIZADO VISUAL
+    // RENDERIZADO VISUAL UTILIZANDO EL XML `item_song`
     // ==========================================
     private fun displayMusicList() {
         containerMediaList.removeAllViews()
@@ -407,6 +384,9 @@ class MainActivity : AppCompatActivity() {
         } else {
             tvEmpty.visibility = View.GONE
             for ((index, media) in filteredMusicList.withIndex()) {
+
+                val itemView = layoutInflater.inflate(R.layout.item_song, containerMediaList, false)
+
                 val cardView = MaterialCardView(this).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
@@ -417,7 +397,6 @@ class MainActivity : AppCompatActivity() {
                     radius = 20f * resources.displayMetrics.density
                     cardElevation = 4f * resources.displayMetrics.density
 
-                    // Se evalúa el color inicial al construir las tarjetas
                     val isCurrentList = MusicPlayerManager.currentSongList == filteredMusicList
                     if (isCurrentList && index == MusicPlayerManager.currentPlayingIndex) {
                         setCardBackgroundColor(0xFF3B1E54.toInt())
@@ -432,81 +411,47 @@ class MainActivity : AppCompatActivity() {
                     isFocusable = true
 
                     setOnClickListener {
+                        MusicPlayerManager.currentSongList = filteredMusicList
                         MusicPlayerManager.playSong(this@MainActivity, filteredMusicList, index)
+
+                        val intent = Intent(this@MainActivity, PlayerActivity::class.java)
+                        startActivity(intent)
                     }
                 }
 
                 mainCardViewsList.add(cardView)
 
-                val innerLayout = LinearLayout(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                    orientation = LinearLayout.HORIZONTAL
-                    setPadding(20, 20, 20, 20)
-                    gravity = Gravity.CENTER_VERTICAL
-                }
+                val iconView = itemView.findViewById<ImageView>(R.id.imgSongCover)
+                val titleView = itemView.findViewById<TextView>(R.id.tvSongTitle)
+                val artistDurationView = itemView.findViewById<TextView>(R.id.tvSongArtist)
 
-                val iconView = ImageView(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        (42 * resources.displayMetrics.density).toInt(),
-                        (42 * resources.displayMetrics.density).toInt()
-                    )
-                    setImageResource(android.R.drawable.ic_lock_silent_mode_off)
-                }
-
-                val textLayout = LinearLayout(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        0,
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        1f
-                    ).apply {
-                        marginStart = (14 * resources.displayMetrics.density).toInt()
-                    }
-                    orientation = LinearLayout.VERTICAL
-                }
-
-                val titleView = TextView(this).apply {
-                    text = media.title
-                    textSize = 15f
-                    setTypeface(null, android.graphics.Typeface.BOLD)
-                    maxLines = 1
-                    setTextColor(0xFFFFFFFF.toInt())
-                }
-
-                val folderSubtitle = TextView(this).apply {
-                    text = getString(R.string.folder_label_format, media.bucketName)
-                    textSize = 12f
-                    setTextColor(0xFFB0B0B0.toInt())
-                }
+                titleView.text = media.title
 
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(media.duration)
                 val seconds = TimeUnit.MILLISECONDS.toSeconds(media.duration) % 60
-                val durationView = TextView(this).apply {
-                    text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-                    textSize = 12f
-                    setTextColor(0xFFFFD700.toInt())
+                artistDurationView.text = String.format(Locale.getDefault(), "%s • %02d:%02d", media.bucketName, minutes, seconds)
+
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(this@MainActivity, media.uri)
+                    val artBytes = retriever.embeddedPicture
+                    if (artBytes != null) {
+                        val bitmap = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size)
+                        iconView.setImageBitmap(bitmap)
+                    } else {
+                        iconView.setImageResource(R.drawable.default_song_cover)
+                    }
+                } catch (_: Exception) {
+                    iconView.setImageResource(R.drawable.default_song_cover)
+                } finally {
+                    retriever.release()
                 }
 
-                textLayout.addView(titleView)
-                textLayout.addView(folderSubtitle)
-                textLayout.addView(durationView)
-
-                innerLayout.addView(iconView)
-                innerLayout.addView(textLayout)
-
-                cardView.addView(innerLayout)
+                cardView.addView(itemView)
                 containerMediaList.addView(cardView)
             }
         }
-        highlightCurrentPlayingSong() // Asegura aplicar el color tras redibujar la lista
-    }
-
-    private fun formatTime(milliseconds: Long): String {
-        val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
-        val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds) % 60
-        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        highlightCurrentPlayingSong()
     }
 
     override fun onDestroy() {

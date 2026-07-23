@@ -39,4 +39,20 @@
     <string name="desc_theme_green">Tema esmeralda</string>
     <string name="desc_theme_orange">Tema coral</string>
     <string name="desc_theme_pink">Tema rosa fucsia</string>
+
+    <string name="btn_down_desc">Cerrar reproductor</string>
+    <string name="playing_from_library">REPRODUCIENDO DESDE TU BIBLIOTECA</string>
+    <string name="btn_more_desc">Más opciones</string>
+    <string name="song_cover_desc">Carátula de la canción</string>
+    <string name="default_artist_name">Nombre del Artista</string>
+    <string name="btn_favorite_desc">Marcar como favorito</string>
+    <string name="time_initial">0:35</string>
+    <string name="time_end">1:40</string>
+    <string name="btn_shuffle_desc">Reproducción aleatoria</string>
+    <string name="btn_previous_desc">Anterior</string>
+    <string name="btn_play_pause_desc">Reproducir o pausar</string>
+    <string name="btn_next_desc">Siguiente</string>
+    <string name="btn_repeat_desc">Repetir</string>
+    <string name="default_artist_duration">Artista • Duración</string>
+    <string name="folder__label_format">Carpeta: %s</string>
 </resources>
